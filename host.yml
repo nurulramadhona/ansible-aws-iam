@@ -1,0 +1,13 @@
+all:
+  hosts:
+    localhost:
+      temp_pass: passwordup2U!
+      user1: nurul
+      user2: rama
+      user3: beny
+      user4: rahman
+      user5: aira
+      user6: daffa
+      group1: developer
+      group2: programmer
+      group3: engineer

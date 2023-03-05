@@ -1,0 +1,123 @@
+    - name: remove all managed policies from role
+      community.aws.iam_role:
+        name: "{{ item.name }}"
+        assume_role_policy_document: "{{ item.file }}"
+        managed_policies: []
+      loop: 
+        - { name: IAM_Policy, file: "{{ lookup('file','role_policy.json') }}" }
+      tags:
+        - iam_deletion 
+
+    - name: delete role
+      community.aws.iam_role:
+        name: "{{ item.name }}"
+        assume_role_policy_document: "{{ item.file }}"
+        state: absent
+      loop: 
+        - { name: IAM, file: "{{ lookup('file','role_policy.json') }}" }
+        - { name: IAM_Policy, file: "{{ lookup('file','role_policy.json') }}" }
+      tags:
+        - iam_deletion
+
+    - name: remove all group members from group with policy attached
+      community.aws.iam_group:
+        name: "{{ item.name }}"
+        managed_policies: "{{ item.policy }}"
+        purge_users: true
+        state: present
+      loop: 
+        - { name: "{{ group3 }}", policy: arn:aws:iam::aws:policy/IAMReadOnlyAccess }
+        - { name: "{{ group1 }}", policy: arn:aws:iam::01234567890:policy/IAMGetUser_Only }
+      tags:
+        - iam_deletion
+
+    - name: remove all policies from group
+      community.aws.iam_group:
+        name: "{{ item.name }}"
+        purge_policies: true
+        state: present
+      loop: 
+        - { name: "{{ group1 }}" }
+        - { name: "{{ group2 }}" }
+        - { name: "{{ group3 }}" }
+      tags:
+        - iam_deletion
+
+    - name: remove all policies from user
+      community.aws.iam_user:
+        name: "{{ item.name }}"
+        purge_policies: true
+        state: present
+      loop: 
+        - { name: "{{ user5 }}" }
+        - { name: "{{ user3 }}" }
+      tags:
+        - iam_deletion
+
+    - name: delete inline policy
+      community.aws.iam_policy:
+        iam_type: user
+        iam_name: "{{ item.user }}"
+        policy_name: "{{ item.name }}"
+        state: absent
+      loop: 
+        - { name: IAMListUsers_Roles, user: "{{ user6 }}" }
+      tags:
+        - iam_deletion 
+
+    - name: delete managed policy
+      community.aws.iam_managed_policy:
+        policy_name: "{{ item.name }}"
+        state: absent
+      loop: 
+        - { name: IAMGetUser_Only }
+      tags:
+        - iam_deletion
+
+    - name: delete user's login profile
+      command: aws iam delete-login-profile --user-name "{{ item.name }}"
+      loop: 
+        - { name: "{{ user1 }}" }
+        - { name: "{{ user2 }}" }
+        - { name: "{{ user3 }}" }
+        - { name: "{{ user4 }}" }
+      tags:
+        - iam_deletion
+
+##### Replace key with each user's access keys
+    - name: delete user's key
+      command: aws iam delete-access-key --user-name "{{ item.name }}" --access-key-id "{{ item.key }}"
+      loop: 
+        - { name: "{{ user1 }}", key: AKIAZ44MXOFLL5MRZWON }
+        - { name: "{{ user2 }}", key: AKIAZ44MXOFLL36LYJKV }
+        - { name: "{{ user3 }}", key: AKIAZ44MXOFLCMV33DHV }
+        - { name: "{{ user4 }}", key: AKIAZ44MXOFLDJASSSVD }
+        - { name: "{{ user5 }}", key: AKIAZ44MXOFLNSZ6RO3F }
+        - { name: "{{ user6 }}", key: AKIAZ44MXOFLB6U2TTEU }
+      tags:
+        - iam_deletion
+
+    - name: delete all users
+      community.aws.iam_user:
+        name: "{{ item }}"
+        state: absent
+      loop: 
+        - "{{ user1 }}"
+        - "{{ user2 }}"
+        - "{{ user3 }}"
+        - "{{ user4 }}"
+        - "{{ user5 }}"
+        - "{{ user6 }}"
+      tags:
+        - iam_deletion
+
+    - name: delete all groups
+      community.aws.iam_group:
+        name: "{{ item }}"
+        state: absent
+      loop: 
+        - "{{ group1 }}"
+        - "{{ group2 }}"
+        - "{{ group3 }}"
+      tags:
+        - iam_deletion

@@ -1,0 +1,28 @@
+- name: iam-policy
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+
+    - name: create inline policy
+      community.aws.iam_policy:
+        iam_type: user
+        iam_name: "{{ item.user }}"
+        policy_name: "{{ item.policy }}"
+        state: present
+        policy_json: "{{ item.template }}"
+      loop: 
+        - { user: "{{ user6 }}", policy: IAMListUsers_Roles, template: "{{ lookup('template', 'inline_policy.json.j2') }}" }
+      tags:
+        - iam_policy_new_inline
+
+    - name: create managed policy
+      community.aws.iam_managed_policy:
+        policy_name: "{{ item.name }}"
+        policy: "{{ item.policy }}"
+        state: present
+      loop: 
+        - { name: IAMGetUser_Only, policy: "{{ lookup('template', 'managed_policy.json.j2') }}" }
+      tags:
+        - iam_policy_new_managed

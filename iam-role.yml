@@ -1,0 +1,25 @@
+- name: iam-role
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+
+    - name: create new role
+      community.aws.iam_role:
+        name: "{{ item.name }}"
+        assume_role_policy_document: "{{ item.file }}"
+      loop: 
+        - { name: IAM, file: "{{ lookup('file','role_policy.json') }}" }
+      tags:
+        - iam_role_new
+
+    - name: create new role and attach managed policy
+      community.aws.iam_role:
+        name: "{{ item.name }}"
+        assume_role_policy_document: "{{ item.file }}"
+        managed_policies: "{{ item.policy }}"
+      loop: 
+        - { name: IAM_Policy, file: "{{ lookup('file','role_policy.json') }}", policy: arn:aws:iam::aws:policy/IAMReadOnlyAccess }
+      tags:
+        - iam_role_new_policy

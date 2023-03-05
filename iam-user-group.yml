@@ -1,0 +1,39 @@
+- name: iam-user-group
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  tasks:
+
+    - name: create group and add existing users as members
+      community.aws.iam_group:
+        name: "{{ item.name }}"
+        state: present
+        users: "{{ item.members }}"
+      loop: 
+#        - { name: "{{ group1 }}", members: ["{{ user1 }}","{{ user2 }}"] }
+        - { name: "{{ group1 }}", members: "{{ user4 }}" }
+      tags:
+        - iam_group_new_members
+
+    - name: create group + attach managed policy
+      community.aws.iam_group:
+        name: "{{ item.name }}"
+        managed_policies: "{{ item.policy }}"
+        state: present
+      loop: 
+#        - { name: "{{ group2 }}", policy: arn:aws:iam::aws:policy/IAMReadOnlyAccess }
+        - { name: "{{ group1 }}", policy: arn:aws:iam::0123456789:policy/IAMGetUser_Only }
+      tags:
+        - iam_group_new_policy
+
+    - name: create group with users as members + attach managed policy
+      community.aws.iam_group:
+        name: "{{ item.name }}"
+        managed_policies: "{{ item.policy }}"
+        users: "{{ item.members }}"
+        state: present
+      loop: 
+        - { name: "{{ group3 }}", policy: arn:aws:iam::aws:policy/IAMReadOnlyAccess, members: ["{{ user1 }}","{{ user2 }}"] }
+      tags:
+        - iam_group_new_policy_members
